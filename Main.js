@@ -43,7 +43,7 @@ var WALL_HEIGHT = 10;
 var WALL_WIDTH = 400;
 var WALL_HALF_WIDTH = 200;
 var WALL_GAP = 80;
-var WALL_RAISE_SPEED = 15;
+var wall_speed = 5;
 
 var walls = [];
 
@@ -60,13 +60,14 @@ class Wall {
         this.rightWall.y = y;
     }
     moveUp(){
-        this.leftWall.y += WALL_RAISE_SPEED;
-        this.rightWall.y += WALL_RAISE_SPEED;
+        this.leftWall.y -= wall_speed;
+        this.rightWall.y -= wall_speed;
     }
     addToStage(){
         stage.addChild(this.leftWall);
         stage.addChild(this.rightWall);
     }
+    
 }
 
 function Main(){
@@ -117,11 +118,15 @@ function addGameView(){
     score.x = 200; 
     score.y = 0; 
 
-    //TODO JUST FOR TESTING
-    for (var x = 0; x < 4; x++){
-        var testWall = new Wall(WALL_GAP * x , (x+1)*100);
+    /*//TODO JUST FOR TESTING
+    for (var i = 0; i < 4; i++){
+        var testWall = new Wall(WALL_GAP * i , (i+1)*100);
         testWall.addToStage();
-    }
+    }*/
+    var firstWall = new Wall(randomGapX(), 600)
+    walls.push(firstWall);
+    firstWall.addToStage();
+    
     stage.addChild(player,score);
 
     /*//TODO REMOVE
@@ -132,10 +137,10 @@ function addGameView(){
       circle.y = 0;
       stage.addChild(circle);
      */
-    
-    createjs.Tween.get(player)
-        .to({y:100}, 1000)
-        .call(startGame());
+    startGame();
+    //createjs.Tween.get(player)
+    //    .to({y:200}, 1000)
+    //    .call(startGame());
 }
 function startGame(){
     
@@ -146,7 +151,11 @@ function startGame(){
 function handleTick(event){
     if(!event.paused){
         
+        walls.forEach(moveWallUp);
+        
         //TODO detect collision with walls here
+        
+        
         
         if (player.falling == true && player.y < HEIGHT - PLAYER_HEIGHT){ //about the bottom
             player.y += PLAYER_FALL_SPEED;
@@ -157,6 +166,10 @@ function handleTick(event){
     }
 }
 
-function makeWall(gapX){
-    //TODO
+function moveWallUp(wall){
+    wall.moveUp();
+}
+
+function randomGapX(){
+    return Math.floor(Math.random() * (WIDTH - WALL_GAP));
 }
