@@ -2,8 +2,8 @@
 
 var stage;
 var CENTER_X = 200;
-var WIDTH = 400;
-var HEIGHT = 700;
+var STAGE_WIDTH = 400;
+var STAGE_HEIGHT = 700;
 
 /* Background */
   
@@ -16,8 +16,9 @@ var bg2;
 
 var pImg = new Image();
 var player;
-var PLAYER_FALL_SPEED = 15;
-var PLAYER_HEIGHT = 100;
+var PLAYER_FALL_SPEED = 10;
+var PLAYER_HEIGHT = 100; //Note that (0,0) is at top left corner of image
+var PLAYER_WIDTH = 70;
 var preload;
 
 var playerSprites = {
@@ -43,9 +44,10 @@ var WALL_HEIGHT = 10;
 var WALL_WIDTH = 400;
 var WALL_HALF_WIDTH = 200;
 var WALL_GAP = 80;
-var wall_speed = 5;
+var wall_speed = 2; //= 5;
+var DESTROY_WALL_HEIGHT = -20;
 
-var walls = [];
+var walls = []; //Acts as a queue, walls[0] is the highest wall
 
 class Wall {
     constructor(gapLeftX, y){
@@ -53,6 +55,7 @@ class Wall {
         this.rightWall = new createjs.Bitmap(preload.getResult("wall"));
         this.gapLeftX = gapLeftX;
         this.gapRightX = this.gapLeftX + WALL_GAP;
+        this.y = y;
         
         this.leftWall.x = this.gapLeftX - WALL_WIDTH;
         this.leftWall.y = y;
@@ -60,6 +63,7 @@ class Wall {
         this.rightWall.y = y;
     }
     moveUp(){
+        this.y -= wall_speed;
         this.leftWall.y -= wall_speed;
         this.rightWall.y -= wall_speed;
     }
@@ -123,20 +127,20 @@ function addGameView(){
         var testWall = new Wall(WALL_GAP * i , (i+1)*100);
         testWall.addToStage();
     }*/
-    var firstWall = new Wall(randomGapX(), 600)
+    var firstWall = new Wall(50,600);//new Wall(randomGapX(), 600)
     walls.push(firstWall);
     firstWall.addToStage();
     
     stage.addChild(player,score);
 
-    /*//TODO REMOVE
+    //TODO REMOVE
     //for testing canvas stuff
     var circle = new createjs.Shape();
     circle.graphics.beginFill("DeepSkyBlue").drawCircle(0, 0, 50);
-      circle.x = 0;
-      circle.y = 0;
+      circle.x = CENTER_X - 50;
+      circle.y = 100;
       stage.addChild(circle);
-     */
+     
     startGame();
     //createjs.Tween.get(player)
     //    .to({y:200}, 1000)
@@ -150,26 +154,79 @@ function startGame(){
 //TODO
 function handleTick(event){
     if(!event.paused){
+        var playerHandled = false;
+        var playerFalling = true;
+
+        for(var w = 0; w < walls.length; w++){
+            var wall = walls[w];
+            wall.moveUp();
+            
+            //Player has passed this wall
+            if(player.y > wall.y){
+                //console.log("SKIP");
+                continue;
+            }
+            
+            if(playerHandled == false){
+                if(areFeetTouchingWall(wall)){
+                    if(areSidesTouchingWall(wall)){
+                        player.y = wall.y - PLAYER_HEIGHT;
+                        player.falling = false;
+                        playerHandled = true;
+                        
+                        //console.log("HIT!");
+                    }
+                }
+                else{
+                    if(isLeftTouchingWall(wall)){
+                        //TODO lock left movement
+                    }else if (isRightTouchingWall(wall)){
+                        //TODO lock right movement
+                    }
+                }
+            }
+        }
+        if(playerFalling == true){
+            movePlayerDown();
+        }
+        //console.log(walls[0].y);
+        if (walls[0].y < DESTROY_WALL_HEIGHT){
+            walls.shift();
+            console.log("RIP WALL");
+        }
         
-        walls.forEach(moveWallUp);
-        
-        //TODO detect collision with walls here
-        
-        
-        
-        if (player.falling == true && player.y < HEIGHT - PLAYER_HEIGHT){ //about the bottom
-            player.y += PLAYER_FALL_SPEED;
-        }   
-        
-        
+       
         stage.update();
     }
 }
 
+function areFeetTouchingWall(wall){
+    return player.y < wall.y && player.y + PLAYER_HEIGHT > wall.y;
+}
+
+function isLeftTouchingWall(wall){
+    return player.x < wall.gapLeftX;
+}
+
+function isRightTouchingWall(wall){
+    return player.x + PLAYER_WIDTH > wall.gapRightX;
+}
+
+function areSidesTouchingWall(wall){
+    return isLeftTouchingWall(wall) || isRightTouchingWall(wall);
+}
+
+function movePlayerDown(){
+    if (player.y < STAGE_HEIGHT - PLAYER_HEIGHT){ //about the bottom
+        player.y += PLAYER_FALL_SPEED;
+    }   
+}
+
+//for the forEach function
 function moveWallUp(wall){
     wall.moveUp();
 }
 
 function randomGapX(){
-    return Math.floor(Math.random() * (WIDTH - WALL_GAP));
+    return Math.floor(Math.random() * (STAGE_WIDTH - WALL_GAP));
 }
