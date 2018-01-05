@@ -17,6 +17,7 @@ var bg2;
 var pImg = new Image();
 var player;
 var PLAYER_FALL_SPEED = 10;
+var PLAYER_WALK_SPEED = 10;
 var PLAYER_HEIGHT = 100; //Note that (0,0) is at top left corner of image
 var PLAYER_WIDTH = 70;
 var preload;
@@ -31,6 +32,8 @@ var playerSprites = {
         fall:3
     }
 };
+
+var mouseTracerX = CENTER_X;
 
 var floorsCompleted;
 
@@ -49,6 +52,7 @@ var DESTROY_WALL_HEIGHT = -20;
 
 var walls = []; //Acts as a queue, walls[0] is the highest wall
 
+//TODO Place both Images into a Container
 class Wall {
     constructor(gapLeftX, y){
         this.leftWall = new createjs.Bitmap(preload.getResult("wall"));
@@ -135,11 +139,11 @@ function addGameView(){
 
     //TODO REMOVE
     //for testing canvas stuff
-    var circle = new createjs.Shape();
+    /*var circle = new createjs.Shape();
     circle.graphics.beginFill("DeepSkyBlue").drawCircle(0, 0, 50);
       circle.x = CENTER_X - 50;
       circle.y = 100;
-      stage.addChild(circle);
+      stage.addChild(circle);*/
      
     startGame();
     //createjs.Tween.get(player)
@@ -147,57 +151,74 @@ function addGameView(){
     //    .call(startGame());
 }
 function startGame(){
-    
+    createjs.Touch.enable(stage);
+    stage.addEventListener("stagemousemove", handleMouseMove);
     createjs.Ticker.addEventListener("tick", handleTick);
 }
 
-//TODO
 function handleTick(event){
     if(!event.paused){
-        var playerHandled = false;
-        var playerFalling = true;
-
-        for(var w = 0; w < walls.length; w++){
-            var wall = walls[w];
-            wall.moveUp();
-            
-            //Player has passed this wall
-            if(player.y > wall.y){
-                //console.log("SKIP");
-                continue;
-            }
-            
-            //Player can only touch one wall at a time. Skip checking the lower ones.
-            if(playerHandled == false){
-                if(areFeetTouchingWall(wall)){
-                    if(areSidesTouchingWall(wall)){
-                        player.y = wall.y - PLAYER_HEIGHT;
-                        playerFalling = false;
-                        
-                        if(isLeftTouchingWall(wall)){
-                            //TODO lock left movement
-                            console.log("LOCK LEFT");
-                        }else {
-                            //TODO lock right movement
-                            console.log("LOCK RIGHT");
-                        }
-                    }
-                    
-                    playerHandled = true;
-                }
-            }
-        }
-        if(playerFalling == true){
-            movePlayerDown();
-        }
-        //console.log(walls[0].y);
-        if (walls[0].y < DESTROY_WALL_HEIGHT){
-            walls.shift();
-            console.log("RIP WALL");
-        }
-        
+        handleWallMovementAndCollisions();
+        handlePlayerInput();
        
         stage.update();
+    }
+}
+
+function handleWallMovementAndCollisions(){
+    var playerHandled = false;
+    var playerFalling = true;
+
+    for(var w = 0; w < walls.length; w++){
+        var wall = walls[w];
+        wall.moveUp();
+        
+        //Player has already passed this wall
+        if(player.y > wall.y){
+            continue;
+        }
+        
+        //Player can only touch one wall at a time. Skip checking the lower ones.
+        if(playerHandled == false){
+            if(areFeetTouchingWall(wall)){
+                if(areSidesTouchingWall(wall)){
+                    player.y = wall.y - PLAYER_HEIGHT;
+                    playerFalling = false;
+                    
+                    if(isLeftTouchingWall(wall)){
+                        //TODO lock left movement
+                        console.log("LOCK LEFT");
+                    }else {
+                        //TODO lock right movement
+                        console.log("LOCK RIGHT");
+                    }
+                }
+                
+                playerHandled = true;
+            }
+        }
+    }
+    if(playerFalling == true){
+        movePlayerDown();
+    }
+    //console.log(walls[0].y);
+    if (walls[0].y < DESTROY_WALL_HEIGHT){
+        walls.shift();
+        console.log("RIP WALL");
+    }
+}
+
+function handleMouseMove(event){
+    mouseTracerX = stage.mouseX;
+    console.log(mouseTracerX);
+}
+
+function handlePlayerInput(){
+    var playerCentreX = player.x + (PLAYER_WIDTH/2);
+    if(playerCentreX < mouseTracerX - PLAYER_WALK_SPEED){
+        player.x += PLAYER_WALK_SPEED;
+    }else if(playerCentreX > mouseTracerX + PLAYER_WALK_SPEED){
+        player.x -= PLAYER_WALK_SPEED;
     }
 }
 
