@@ -127,7 +127,7 @@ function addGameView(){
         var testWall = new Wall(WALL_GAP * i , (i+1)*100);
         testWall.addToStage();
     }*/
-    var firstWall = new Wall(50,600);//new Wall(randomGapX(), 600)
+    var firstWall = new Wall(150,600);//new Wall(randomGapX(), 600)
     walls.push(firstWall);
     firstWall.addToStage();
     
@@ -167,22 +167,23 @@ function handleTick(event){
                 continue;
             }
             
+            //Player can only touch one wall at a time. Skip checking the lower ones.
             if(playerHandled == false){
                 if(areFeetTouchingWall(wall)){
                     if(areSidesTouchingWall(wall)){
                         player.y = wall.y - PLAYER_HEIGHT;
-                        player.falling = false;
-                        playerHandled = true;
+                        playerFalling = false;
                         
-                        //console.log("HIT!");
+                        if(isLeftTouchingWall(wall)){
+                            //TODO lock left movement
+                            console.log("LOCK LEFT");
+                        }else {
+                            //TODO lock right movement
+                            console.log("LOCK RIGHT");
+                        }
                     }
-                }
-                else{
-                    if(isLeftTouchingWall(wall)){
-                        //TODO lock left movement
-                    }else if (isRightTouchingWall(wall)){
-                        //TODO lock right movement
-                    }
+                    
+                    playerHandled = true;
                 }
             }
         }
