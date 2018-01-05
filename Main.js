@@ -19,6 +19,7 @@ var player;
 var PLAYER_FALL_SPEED = 10;
 var PLAYER_WALK_SPEED = 10;
 var PLAYER_HEIGHT = 100; //Note that (0,0) is at top left corner of image
+var PLAYER_HALF_HEIGHT = 50;
 var PLAYER_WIDTH = 70;
 var preload;
 
@@ -48,7 +49,8 @@ var WALL_WIDTH = 400;
 var WALL_HALF_WIDTH = 200;
 var WALL_GAP = 80;
 var wall_speed = 2; //= 5;
-var DESTROY_WALL_HEIGHT = -20;
+var DESTROY_WALL_Y = -20;
+var SPAWN_NEW_WALL_Y = 200;
 
 var walls = []; //Acts as a queue, walls[0] is the highest wall
 
@@ -165,13 +167,25 @@ function handleTick(event){
     }
 }
 
+function spawnNewWall(){
+    var newWall = new Wall(randomGapX(), 750)
+    walls.push(newWall);
+    newWall.addToStage();
+}
+
 function handleWallMovementAndCollisions(){
     var playerHandled = false;
     var playerFalling = true;
+    var makeNewWall = false;
 
     for(var w = 0; w < walls.length; w++){
         var wall = walls[w];
         wall.moveUp();
+        
+        if(wall.y < SPAWN_NEW_WALL_Y + wall_speed && wall.y > SPAWN_NEW_WALL_Y - wall_speed){
+            console.log("SPAWN NEW WALL");
+            spawnNewWall();
+        }
         
         //Player has already passed this wall
         if(player.y > wall.y){
@@ -201,8 +215,8 @@ function handleWallMovementAndCollisions(){
     if(playerFalling == true){
         movePlayerDown();
     }
-    //console.log(walls[0].y);
-    if (walls[0].y < DESTROY_WALL_HEIGHT){
+    
+    if (walls[0].y < DESTROY_WALL_Y){
         walls.shift();
         console.log("RIP WALL");
     }
@@ -210,7 +224,6 @@ function handleWallMovementAndCollisions(){
 
 function handleMouseMove(event){
     mouseTracerX = stage.mouseX;
-    console.log(mouseTracerX);
 }
 
 function handlePlayerInput(){
@@ -222,8 +235,9 @@ function handlePlayerInput(){
     }
 }
 
+//just check lower half of player body
 function areFeetTouchingWall(wall){
-    return player.y < wall.y && player.y + PLAYER_HEIGHT > wall.y;
+    return player.y + PLAYER_HALF_HEIGHT < wall.y && player.y + PLAYER_HEIGHT > wall.y;
 }
 
 function isLeftTouchingWall(wall){
