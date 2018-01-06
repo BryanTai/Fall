@@ -17,10 +17,12 @@ var bg2;
 var pImg = new Image();
 var player;
 var PLAYER_FALL_SPEED = 10;
-var PLAYER_WALK_SPEED = 10;
+var PLAYER_WALK_SPEED = 15;
 var PLAYER_HEIGHT = 100; //Note that (0,0) is at top left corner of image
 var PLAYER_HALF_HEIGHT = 50;
+var PLAYER_FEET_HEIGHT = 90;
 var PLAYER_WIDTH = 70;
+var PLAYER_WIGGLE_ROOM = 5;
 var preload;
 
 var playerSprites = {
@@ -48,9 +50,9 @@ var WALL_HEIGHT = 10;
 var WALL_WIDTH = 400;
 var WALL_HALF_WIDTH = 200;
 var WALL_GAP = 80;
-var wall_speed = 2; //= 5;
+var wall_speed = 10;
 var DESTROY_WALL_Y = -20;
-var SPAWN_NEW_WALL_Y = 200;
+var SPAWN_NEW_WALL_Y = 400; //Higher number means more walls
 
 var walls = []; //Acts as a queue, walls[0] is the highest wall
 
@@ -188,7 +190,7 @@ function handleWallMovementAndCollisions(){
         }
         
         //Player has already passed this wall
-        if(player.y > wall.y){
+        if(player.y + PLAYER_FEET_HEIGHT > wall.y){
             continue;
         }
         
@@ -199,19 +201,25 @@ function handleWallMovementAndCollisions(){
                     player.y = wall.y - PLAYER_HEIGHT;
                     playerFalling = false;
                     
+                    /*
                     if(isLeftTouchingWall(wall)){
                         //TODO lock left movement
-                        console.log("LOCK LEFT");
+                        //console.log("LOCK LEFT");
                     }else {
                         //TODO lock right movement
-                        console.log("LOCK RIGHT");
-                    }
+                        //console.log("LOCK RIGHT");
+                    }*/
                 }
                 
                 playerHandled = true;
             }
         }
     }
+    
+    if(player.y > 0 - PLAYER_HEIGHT) {
+        gameOver();
+    }
+    
     if(playerFalling == true){
         movePlayerDown();
     }
@@ -235,17 +243,24 @@ function handlePlayerInput(){
     }
 }
 
+function gameOver(){
+    //TODO
+    console.log("DEAD");
+}
+
 //just check lower half of player body
 function areFeetTouchingWall(wall){
-    return player.y + PLAYER_HALF_HEIGHT < wall.y && player.y + PLAYER_HEIGHT > wall.y;
+    var playerTopOfFeet = player.y + PLAYER_HEIGHT - wall_speed - 1;
+    var playerBottomOfFeet = player.y + PLAYER_HEIGHT;
+    return playerTopOfFeet < wall.y && playerBottomOfFeet > wall.y;
 }
 
 function isLeftTouchingWall(wall){
-    return player.x < wall.gapLeftX;
+    return player.x + PLAYER_WIGGLE_ROOM < wall.gapLeftX;
 }
 
 function isRightTouchingWall(wall){
-    return player.x + PLAYER_WIDTH > wall.gapRightX;
+    return player.x + PLAYER_WIDTH - PLAYER_WIGGLE_ROOM > wall.gapRightX;
 }
 
 function areSidesTouchingWall(wall){
