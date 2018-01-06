@@ -2,6 +2,7 @@
 
 var stage;
 var CENTER_X = 200;
+var CENTER_Y = 350;
 var STAGE_WIDTH = 400;
 var STAGE_HEIGHT = 700;
 
@@ -88,7 +89,7 @@ function Main(){
     stage = new createjs.Stage("fallCanvas");
     
     stage.enableMouseOver(20);
-    
+    createjs.Ticker.framerate = 30;
     /* Sound */
     //createjs.Sound.registerSound("bip.wav", bipSoundID, 5);
     
@@ -99,15 +100,14 @@ function Main(){
         {src: "person_left.png", id: "left"},
         {src: "person_right.png", id: "right"},
         {src: "person_fall.png", id: "fall"},
-        {src: "wall.png", id: "wall"}
+        {src: "wall.png", id: "wall"},
+        {src: "gameover.png", id: "gameover"}
     ]
     preload = new createjs.LoadQueue(true, "assets/");
     preload.on("complete", handleComplete);
     preload.installPlugin(createjs.Sound);
     preload.loadFile({src:"sounds/bip.wav", id:"bip"});
     preload.loadManifest(manifest, true, "assets/images/");
-    
-    createjs.Ticker.framerate = 30;
 }
 
 function handleComplete(){
@@ -121,7 +121,7 @@ function addGameView(){
     //Start player off-screen, have them fall into course
     player = new createjs.Bitmap(preload.getResult("fall"));
     player.x = CENTER_X - 50;
-    player.y = -100;
+    player.y = -PLAYER_HEIGHT + 10;
     player.falling = true;
     
     
@@ -190,7 +190,9 @@ function handleWallMovementAndCollisions(){
         }
         
         //Player has already passed this wall
-        if(player.y + PLAYER_FEET_HEIGHT > wall.y){
+        var wallPassed = player.y + PLAYER_FEET_HEIGHT > wall.y;
+        var wallTooFar = player.y + PLAYER_HEIGHT + PLAYER_FALL_SPEED< wall.y;
+        if(wallPassed || wallTooFar){
             continue;
         }
         
@@ -200,15 +202,6 @@ function handleWallMovementAndCollisions(){
                 if(areSidesTouchingWall(wall)){
                     player.y = wall.y - PLAYER_HEIGHT;
                     playerFalling = false;
-                    
-                    /*
-                    if(isLeftTouchingWall(wall)){
-                        //TODO lock left movement
-                        //console.log("LOCK LEFT");
-                    }else {
-                        //TODO lock right movement
-                        //console.log("LOCK RIGHT");
-                    }*/
                 }
                 
                 playerHandled = true;
@@ -216,7 +209,7 @@ function handleWallMovementAndCollisions(){
         }
     }
     
-    if(player.y > 0 - PLAYER_HEIGHT) {
+    if(player.y < 0 - PLAYER_HEIGHT) {
         gameOver();
     }
     
@@ -246,13 +239,19 @@ function handlePlayerInput(){
 function gameOver(){
     //TODO
     console.log("DEAD");
+    createjs.Ticker.paused = true;
+    var gameoverScreen = new createjs.Bitmap(preload.getResult("gameover"));
+    gameoverScreen.x = CENTER_X - 150;
+    gameoverScreen.y = CENTER_Y - 150;
+    stage.addChild(gameoverScreen);
+    stage.update();
 }
 
 //just check lower half of player body
 function areFeetTouchingWall(wall){
-    var playerTopOfFeet = player.y + PLAYER_HEIGHT - wall_speed - 1;
+    var playerTopOfFeet = player.y; //+ PLAYER_HEIGHT - wall_speed - PLAYER_FALL_SPEED - 20;
     var playerBottomOfFeet = player.y + PLAYER_HEIGHT;
-    return playerTopOfFeet < wall.y && playerBottomOfFeet > wall.y;
+    return playerTopOfFeet < wall.y && playerBottomOfFeet >= wall.y;
 }
 
 function isLeftTouchingWall(wall){
