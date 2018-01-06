@@ -243,6 +243,9 @@ function gameOver(){
     var gameoverScreen = new createjs.Bitmap(preload.getResult("gameover"));
     gameoverScreen.x = CENTER_X - 150;
     gameoverScreen.y = CENTER_Y - 150;
+    
+    gameoverScreen.addEventListener("mousedown", function(){window.location.reload();});
+    
     stage.addChild(gameoverScreen);
     stage.update();
 }
