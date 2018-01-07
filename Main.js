@@ -44,7 +44,8 @@ var floorsCompleted;
 /* Sound */
 var bipSoundID = "bip";
 
-var score;
+var scoreText;
+var scoreAmount;
 
 /* Walls */
 var WALL_HEIGHT = 10;
@@ -123,10 +124,11 @@ function addGameView(){
     player.falling = true;
     
     
-    score = new createjs.Text("0", "24px Arial", "#000000");
-    score.maxWidth = 1000;  //fix for Chrome 17 
-    score.x = 200; 
-    score.y = 0; 
+    scoreText = new createjs.Text("0", "24px Arial", "#000000");
+    scoreText.maxWidth = 1000;  //fix for Chrome 17 
+    scoreText.x = 200; 
+    scoreText.y = 0; 
+    scoreAmount = 0;
 
     /*//TODO JUST FOR TESTING
     for (var i = 0; i < 4; i++){
@@ -138,7 +140,7 @@ function addGameView(){
     firstWall.addToStage();
     currentWallIndex = 0;
     
-    stage.addChild(player,score);
+    stage.addChild(player,scoreText);
 
     //TODO REMOVE
     //for testing canvas stuff
@@ -222,7 +224,13 @@ function updateCurrentWallIndex(){
         currentWallIndex++;
         //TODO increase score (and speed?)
         //check for 10th as well
+        increaseScore();
     }
+}
+
+function increaseScore(){
+    scoreAmount++;
+    scoreText.text = scoreAmount;
 }
 
 function destroyWall(){
