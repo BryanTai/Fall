@@ -53,6 +53,7 @@ var WALL_WIDTH = 400;
 var WALL_HALF_WIDTH = 200;
 var WALL_GAP = 80;
 var wall_speed = 10;
+var WALL_SPEED_MAX = 20;
 var DESTROY_WALL_Y = -20;
 var NEW_WALL_TRIGGER_Y = 650; //Higher number means more walls
 var NEW_WALL_SPAWN_Y = 1000;
@@ -183,13 +184,18 @@ function checkGameOver(){
     }
 }
 
+var tickCount = 0;
+
 function moveWalls(){
+    tickCount++;
     for(var w = 0; w < walls.length; w++){
         var wall = walls[w];
         wall.moveUp();
         
-        if(wall.y < NEW_WALL_TRIGGER_Y + wall_speed && wall.y > NEW_WALL_TRIGGER_Y - wall_speed){
+        //if(wall.y < NEW_WALL_TRIGGER_Y + 20 && wall.y > NEW_WALL_TRIGGER_Y - 20){
+        if(tickCount >= 20){
             spawnNewWall();
+            tickCount = 0;
         }
     }
 }
@@ -231,6 +237,17 @@ function updateCurrentWallIndex(){
 function increaseScore(){
     scoreAmount++;
     scoreText.text = scoreAmount;
+    
+    if(scoreAmount % 10 == 0){
+        //if(wall_speed < WALL_SPEED_MAX){
+            wall_speed++;
+        //}
+        popUpMessage();
+    }
+}
+
+function popUpMessage(){
+    
 }
 
 function destroyWall(){
