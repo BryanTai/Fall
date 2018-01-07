@@ -53,7 +53,9 @@ var WALL_HALF_WIDTH = 200;
 var WALL_GAP = 80;
 var wall_speed = 10;
 var DESTROY_WALL_Y = -20;
-var SPAWN_NEW_WALL_Y = 400; //Higher number means more walls
+var NEW_WALL_TRIGGER_Y = 650; //Higher number means more walls
+var NEW_WALL_SPAWN_Y = 1000;
+var currentWallIndex;
 
 var walls = []; //Acts as a queue, walls[0] is the highest wall
 
@@ -90,11 +92,7 @@ function Main(){
     
     stage.enableMouseOver(20);
     createjs.Ticker.framerate = 30;
-    /* Sound */
-    //createjs.Sound.registerSound("bip.wav", bipSoundID, 5);
-    
-    /* Sprites */
-    //var spriteSheet = new createjs.SpriteSheet(playerSprites);
+
     var manifest = [
         {src: "person_idle.png", id: "idle"},
         {src: "person_left.png", id: "left"},
@@ -135,9 +133,10 @@ function addGameView(){
         var testWall = new Wall(WALL_GAP * i , (i+1)*100);
         testWall.addToStage();
     }*/
-    var firstWall = new Wall(150,600);//new Wall(randomGapX(), 600)
+    var firstWall = new Wall(150,655);//new Wall(randomGapX(), 600)
     walls.push(firstWall);
     firstWall.addToStage();
+    currentWallIndex = 0;
     
     stage.addChild(player,score);
 
@@ -162,64 +161,75 @@ function startGame(){
 
 function handleTick(event){
     if(!event.paused){
-        handleWallMovementAndCollisions();
+        player.falling = true;
+        checkGameOver();
+        moveWalls();
+        checkCollisionAgainstCurrentWall();
         handlePlayerInput();
+        movePlayerDown();
+        updateCurrentWallIndex();
+        destroyWall();
+        //handleWallMovementAndCollisions();
        
         stage.update();
     }
 }
 
-function spawnNewWall(){
-    var newWall = new Wall(randomGapX(), 750)
-    walls.push(newWall);
-    newWall.addToStage();
+function checkGameOver(){
+    if(player.y < 0 - PLAYER_HEIGHT) {
+        gameOver();
+    }
 }
 
-function handleWallMovementAndCollisions(){
-    var playerHandled = false;
-    var playerFalling = true;
-    var makeNewWall = false;
-
+function moveWalls(){
     for(var w = 0; w < walls.length; w++){
         var wall = walls[w];
         wall.moveUp();
         
-        if(wall.y < SPAWN_NEW_WALL_Y + wall_speed && wall.y > SPAWN_NEW_WALL_Y - wall_speed){
-            console.log("SPAWN NEW WALL");
+        if(wall.y < NEW_WALL_TRIGGER_Y + wall_speed && wall.y > NEW_WALL_TRIGGER_Y - wall_speed){
             spawnNewWall();
         }
-        
-        //Player has already passed this wall
-        var wallPassed = player.y + PLAYER_FEET_HEIGHT > wall.y;
-        var wallTooFar = player.y + PLAYER_HEIGHT + PLAYER_FALL_SPEED< wall.y;
-        if(wallPassed || wallTooFar){
-            continue;
+    }
+}
+
+function spawnNewWall(){
+    var newWall = new Wall(randomGapX(), NEW_WALL_SPAWN_Y)
+    walls.push(newWall);
+    newWall.addToStage();
+}
+
+function checkCollisionAgainstCurrentWall(){
+    var currentWall = walls[currentWallIndex];
+    var wallTooFar = player.y + PLAYER_HEIGHT + PLAYER_FALL_SPEED < currentWall.y;
+    if(wallTooFar == true){
+        return;
+    }
+    
+    if(areFeetTouchingWall(currentWall)){
+        if(areSidesTouchingWall(currentWall)){
+            player.y = currentWall.y - PLAYER_HEIGHT;
+            player.falling = false;
         }
         
-        //Player can only touch one wall at a time. Skip checking the lower ones.
-        if(playerHandled == false){
-            if(areFeetTouchingWall(wall)){
-                if(areSidesTouchingWall(wall)){
-                    player.y = wall.y - PLAYER_HEIGHT;
-                    playerFalling = false;
-                }
-                
-                playerHandled = true;
-            }
-        }
+        playerHandled = true;
     }
-    
-    if(player.y < 0 - PLAYER_HEIGHT) {
-        gameOver();
+}
+
+function updateCurrentWallIndex(){
+    var currentWall = walls[currentWallIndex];
+    //New walls spawn well off screen so currentWallIndex will stay in bounds
+    if( player.y + PLAYER_FEET_HEIGHT > currentWall.y ){
+        currentWallIndex++;
+        //TODO increase score (and speed?)
+        //check for 10th as well
     }
-    
-    if(playerFalling == true){
-        movePlayerDown();
-    }
-    
+}
+
+function destroyWall(){
     if (walls[0].y < DESTROY_WALL_Y){
         walls.shift();
-        console.log("RIP WALL");
+        currentWallIndex--;
+        //console.log("RIP WALL");
     }
 }
 
@@ -237,7 +247,6 @@ function handlePlayerInput(){
 }
 
 function gameOver(){
-    //TODO
     console.log("DEAD");
     createjs.Ticker.paused = true;
     var gameoverScreen = new createjs.Bitmap(preload.getResult("gameover"));
@@ -270,7 +279,7 @@ function areSidesTouchingWall(wall){
 }
 
 function movePlayerDown(){
-    if (player.y < STAGE_HEIGHT - PLAYER_HEIGHT){ //about the bottom
+    if (player.falling == true && player.y < STAGE_HEIGHT - PLAYER_HEIGHT){
         player.y += PLAYER_FALL_SPEED;
     }   
 }
