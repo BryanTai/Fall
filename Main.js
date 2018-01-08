@@ -25,6 +25,7 @@ var PLAYER_FEET_HEIGHT = 90;
 var PLAYER_WIDTH = 70;
 var PLAYER_WIGGLE_ROOM = 5;
 var preload;
+var message;
 
 var playerSprites = {
     images: ["people.png"],
@@ -131,6 +132,11 @@ function addGameView(){
     scoreText.y = 0; 
     scoreAmount = 0;
 
+    var messageText = "COOL!";
+    message = new createjs.Text(messageText, "16px Arial", "#000000");
+    message.maxWidth = 1000;  //fix for Chrome 17 
+    message.alpha = 0;
+    
     /*//TODO JUST FOR TESTING
     for (var i = 0; i < 4; i++){
         var testWall = new Wall(WALL_GAP * i , (i+1)*100);
@@ -141,7 +147,7 @@ function addGameView(){
     firstWall.addToStage();
     currentWallIndex = 0;
     
-    stage.addChild(player,scoreText);
+    stage.addChild(player, scoreText, message);
 
     //TODO REMOVE
     //for testing canvas stuff
@@ -247,6 +253,11 @@ function increaseScore(){
 }
 
 function popUpMessage(){
+    //var messageText = "COOL!";
+    //message = new createjs.Text(messageText, "16px Arial", "#000000");
+    //message.maxWidth = 1000;  //fix for Chrome 17 
+    message.x = player.x; 
+    message.y = player.y - 10; 
     
 }
 
