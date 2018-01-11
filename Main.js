@@ -164,6 +164,7 @@ function addGameView(){
 function startGame(){
     createjs.Touch.enable(stage);
     stage.addEventListener("stagemousemove", handleMouseMove);
+    stage.addEventListener("stagemousedown", handleMouseMove);
     createjs.Ticker.addEventListener("tick", handleTick);
 }
 
