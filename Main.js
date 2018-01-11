@@ -59,7 +59,6 @@ var WALL_GAP = 80;
 var wall_speed = 10;
 var WALL_SPEED_INCREASE = 0.5;
 var DESTROY_WALL_Y = -20;
-var NEW_WALL_TRIGGER_Y = 650; //Higher number means more walls
 var NEW_WALL_SPAWN_Y = 1000;
 var currentWallIndex;
 
@@ -117,12 +116,16 @@ function Main(){
 
 function handleComplete(){
     createjs.Sound.play("bip");
-    
-    
     addGameView();
 }
 
 function addGameView(){
+    var background = new createjs.Shape();
+    background.graphics.beginFill("#ebebeb").drawRect(0,0,STAGE_WIDTH, STAGE_HEIGHT);
+    background.x = 0;
+    background.y = 0;
+    stage.addChild(background);
+    
     //Start player off-screen, have them fall into course
     player = new createjs.Bitmap(preload.getResult("fall"));
     player.x = CENTER_X - 50;
@@ -133,7 +136,8 @@ function addGameView(){
     scoreText = new createjs.Text("0", "32px Arial", "#000000");
     scoreText.maxWidth = 1000;  //fix for Chrome 17 
     scoreText.x = 200; 
-    scoreText.y = 0; 
+    scoreText.y = 20; 
+    scoreText.textAlign = "center";
     scoreAmount = 0;
 
     var message = "COOL!";
@@ -155,11 +159,7 @@ function addGameView(){
     
     stage.addChild(player, scoreText, messageText);
 
-     
     startGame();
-    //createjs.Tween.get(player)
-    //    .to({y:200}, 1000)
-    //    .call(startGame());
 }
 function startGame(){
     createjs.Touch.enable(stage);
@@ -197,7 +197,6 @@ function moveWalls(){
         var wall = walls[w];
         wall.moveUp();
         
-        //if(wall.y < NEW_WALL_TRIGGER_Y + 20 && wall.y > NEW_WALL_TRIGGER_Y - 20){
         if(tickCount >= 20){
             spawnNewWall();
             tickCount = 0;
@@ -241,13 +240,14 @@ function increaseScore(){
     scoreAmount++;
     scoreText.text = scoreAmount;
     if(scoreAmount % 5 == 0){
+        createjs.Sound.play("bip");
         wall_speed+= WALL_SPEED_INCREASE;
         popUpMessage();
     }
 }
 
 function popUpMessage(){
-    var randomMessageIndex = Math.floor(Math.random() * totalMessages);
+    var randomMessageIndex = Math.floor(Math.random() * (totalMessages-1));
     messageText.text = messages[randomMessageIndex];
     createjs.Tween.get(messageText)
     .to({alpha:1}, 500, createjs.Ease.getPowInOut(2))
