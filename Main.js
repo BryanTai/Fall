@@ -240,7 +240,7 @@ function increaseScore(){
     scoreAmount++;
     scoreText.text = scoreAmount;
     if(scoreAmount % 5 == 0){
-        createjs.Sound.play("bip");
+        //createjs.Sound.play("bip");
         wall_speed+= WALL_SPEED_INCREASE;
         popUpMessage();
     }
