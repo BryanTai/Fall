@@ -25,7 +25,10 @@ var PLAYER_FEET_HEIGHT = 90;
 var PLAYER_WIDTH = 70;
 var PLAYER_WIGGLE_ROOM = 5;
 var preload;
+
 var messageText;
+var messages;
+var totalMessages;
 
 var playerSprites = {
     images: ["people.png"],
@@ -54,7 +57,7 @@ var WALL_WIDTH = 400;
 var WALL_HALF_WIDTH = 200;
 var WALL_GAP = 80;
 var wall_speed = 10;
-var WALL_SPEED_MAX = 20;
+var WALL_SPEED_INCREASE = 0.5;
 var DESTROY_WALL_Y = -20;
 var NEW_WALL_TRIGGER_Y = 650; //Higher number means more walls
 var NEW_WALL_SPAWN_Y = 1000;
@@ -108,6 +111,7 @@ function Main(){
     preload.on("complete", handleComplete);
     preload.installPlugin(createjs.Sound);
     preload.loadFile({src:"sounds/bip.wav", id:"bip"});
+    preload.loadFile({src:"text/messages.txt", id:"messages"});
     preload.loadManifest(manifest, true, "assets/images/");
 }
 
@@ -132,13 +136,17 @@ function addGameView(){
     scoreText.y = 0; 
     scoreAmount = 0;
 
-    var message = "COOL!"; //TODO load messages from a text doc
-    messageText = new createjs.Text(message, "60px Arial", "#38FF33");
+    var message = "COOL!";
+    messageText = new createjs.Text(message, "45px Arial", "#38FF33");
     messageText.maxWidth = 1000;  //fix for Chrome 17 
     messageText.x = CENTER_X;
     messageText.y = CENTER_Y;
     messageText.alpha = 0;
     messageText.textAlign = "center";
+    
+    messages = preload.getResult("messages").split('\n');
+    totalMessages = messages.length;
+    
 
     var firstWall = new Wall(150,655);//new Wall(randomGapX(), 600)
     walls.push(firstWall);
@@ -169,7 +177,6 @@ function handleTick(event){
         movePlayerDown();
         updateCurrentWallIndex();
         destroyWall();
-        //handleWallMovementAndCollisions();
        
         stage.update();
     }
@@ -232,15 +239,15 @@ function updateCurrentWallIndex(){
 function increaseScore(){
     scoreAmount++;
     scoreText.text = scoreAmount;
-    //popUpMessage();
-    if(scoreAmount % 5 == 0){ //set to 5 for testing, 10 for game
-        wall_speed++;
+    if(scoreAmount % 5 == 0){
+        wall_speed+= WALL_SPEED_INCREASE;
         popUpMessage();
     }
 }
 
 function popUpMessage(){
-//messageText.text = "SENSATIONAL!";
+    var randomMessageIndex = Math.floor(Math.random() * totalMessages);
+    messageText.text = messages[randomMessageIndex];
     createjs.Tween.get(messageText)
     .to({alpha:1}, 500, createjs.Ease.getPowInOut(2))
     .to({alpha:0}, 500, createjs.Ease.getPowInOut(2));
@@ -250,7 +257,6 @@ function destroyWall(){
     if (walls[0].y < DESTROY_WALL_Y){
         walls.shift();
         currentWallIndex--;
-        //console.log("RIP WALL");
     }
 }
 
