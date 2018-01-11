@@ -25,7 +25,7 @@ var PLAYER_FEET_HEIGHT = 90;
 var PLAYER_WIDTH = 70;
 var PLAYER_WIGGLE_ROOM = 5;
 var preload;
-var message;
+var messageText;
 
 var playerSprites = {
     images: ["people.png"],
@@ -126,36 +126,27 @@ function addGameView(){
     player.falling = true;
     
     
-    scoreText = new createjs.Text("0", "24px Arial", "#000000");
+    scoreText = new createjs.Text("0", "32px Arial", "#000000");
     scoreText.maxWidth = 1000;  //fix for Chrome 17 
     scoreText.x = 200; 
     scoreText.y = 0; 
     scoreAmount = 0;
 
-    var messageText = "COOL!";
-    message = new createjs.Text(messageText, "16px Arial", "#000000");
-    message.maxWidth = 1000;  //fix for Chrome 17 
-    message.alpha = 0;
-    
-    /*//TODO JUST FOR TESTING
-    for (var i = 0; i < 4; i++){
-        var testWall = new Wall(WALL_GAP * i , (i+1)*100);
-        testWall.addToStage();
-    }*/
+    var message = "COOL!"; //TODO load messages from a text doc
+    messageText = new createjs.Text(message, "60px Arial", "#38FF33");
+    messageText.maxWidth = 1000;  //fix for Chrome 17 
+    messageText.x = CENTER_X;
+    messageText.y = CENTER_Y;
+    messageText.alpha = 0;
+    messageText.textAlign = "center";
+
     var firstWall = new Wall(150,655);//new Wall(randomGapX(), 600)
     walls.push(firstWall);
     firstWall.addToStage();
     currentWallIndex = 0;
     
-    stage.addChild(player, scoreText, message);
+    stage.addChild(player, scoreText, messageText);
 
-    //TODO REMOVE
-    //for testing canvas stuff
-    /*var circle = new createjs.Shape();
-    circle.graphics.beginFill("DeepSkyBlue").drawCircle(0, 0, 50);
-      circle.x = CENTER_X - 50;
-      circle.y = 100;
-      stage.addChild(circle);*/
      
     startGame();
     //createjs.Tween.get(player)
@@ -234,8 +225,6 @@ function updateCurrentWallIndex(){
     //New walls spawn well off screen so currentWallIndex will stay in bounds
     if( player.y + PLAYER_FEET_HEIGHT > currentWall.y ){
         currentWallIndex++;
-        //TODO increase score (and speed?)
-        //check for 10th as well
         increaseScore();
     }
 }
@@ -243,22 +232,18 @@ function updateCurrentWallIndex(){
 function increaseScore(){
     scoreAmount++;
     scoreText.text = scoreAmount;
-    
-    if(scoreAmount % 10 == 0){
-        //if(wall_speed < WALL_SPEED_MAX){
-            wall_speed++;
-        //}
+    //popUpMessage();
+    if(scoreAmount % 5 == 0){ //set to 5 for testing, 10 for game
+        wall_speed++;
         popUpMessage();
     }
 }
 
 function popUpMessage(){
-    //var messageText = "COOL!";
-    //message = new createjs.Text(messageText, "16px Arial", "#000000");
-    //message.maxWidth = 1000;  //fix for Chrome 17 
-    message.x = player.x; 
-    message.y = player.y - 10; 
-    
+//messageText.text = "SENSATIONAL!";
+    createjs.Tween.get(messageText)
+    .to({alpha:1}, 500, createjs.Ease.getPowInOut(2))
+    .to({alpha:0}, 500, createjs.Ease.getPowInOut(2));
 }
 
 function destroyWall(){
