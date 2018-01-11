@@ -250,8 +250,8 @@ function popUpMessage(){
     var randomMessageIndex = Math.floor(Math.random() * (totalMessages-1));
     messageText.text = messages[randomMessageIndex];
     createjs.Tween.get(messageText)
-    .to({alpha:1}, 500, createjs.Ease.getPowInOut(2))
-    .to({alpha:0}, 500, createjs.Ease.getPowInOut(2));
+    .to({alpha:1}, 700, createjs.Ease.getPowInOut(2))
+    .to({alpha:0}, 700, createjs.Ease.getPowInOut(2));
 }
 
 function destroyWall(){
