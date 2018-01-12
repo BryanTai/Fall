@@ -163,9 +163,25 @@ function addGameView(){
 }
 function startGame(){
     createjs.Touch.enable(stage);
+    //NOTE that arrow keys are detected on "keydown", not "keypress" for some reason :I
+    addEvent(document, "keydown", function (e) {
+        e = e || window.event;
+        handleKeyPress(e);
+    });
     stage.addEventListener("stagemousemove", handleMouseMove);
     stage.addEventListener("stagemousedown", handleMouseMove);
     createjs.Ticker.addEventListener("tick", handleTick);
+}
+
+//borrowed from https://stackoverflow.com/questions/16089421/simplest-way-to-detect-keypresses-in-javascript
+function addEvent(element, eventName, callback) {
+    if (element.addEventListener) {
+        element.addEventListener(eventName, callback, false);
+    } else if (element.attachEvent) {
+        element.attachEvent("on" + eventName, callback);
+    } else {
+        element["on" + eventName] = callback;
+    }
 }
 
 function handleTick(event){
@@ -258,6 +274,16 @@ function destroyWall(){
     if (walls[0].y < DESTROY_WALL_Y){
         walls.shift();
         currentWallIndex--;
+    }
+}
+
+function handleKeyPress(event){
+    if(event.keyCode == 37 || event.keyCode == 65){
+        //move LEFT
+        mouseTracerX = 0;
+    }else if(event.keyCode == 39 || event.keyCode == 68){
+        //move RIGHT
+        mouseTracerX = STAGE_WIDTH;
     }
 }
 
