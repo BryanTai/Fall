@@ -1,17 +1,11 @@
 /* Define Canvas */
 
 var stage;
+var canvas;
 var CENTER_X = 200;
 var CENTER_Y = 350;
 var STAGE_WIDTH = 400;
 var STAGE_HEIGHT = 700;
-
-/* Background */
-  
-var bgImg = new Image(); 
-var bg; 
-var bg2Img = new Image(); 
-var bg2;
 
 /* Player */
 
@@ -91,12 +85,15 @@ class Wall {
 }
 
 function Main(){
-    
     /* Link Canvas */
-    stage = new createjs.Stage("fallCanvas");
+    canvas = document.querySelector('canvas')
+    stage = new createjs.Stage(canvas);
     
     stage.enableMouseOver(20);
     createjs.Ticker.framerate = 30;
+    
+    window.addEventListener('resize', resize, false);
+    resize();
 
     var manifest = [
         {src: "person_idle.png", id: "idle"},
@@ -112,6 +109,15 @@ function Main(){
     preload.loadFile({src:"sounds/bip.wav", id:"bip"});
     preload.loadFile({src:"text/messages.txt", id:"messages"});
     preload.loadManifest(manifest, true, "assets/images/");
+}
+
+function resize(){
+    var height = window.innerHeight;
+    var ratio = canvas.width/canvas.height;
+	var width = height * ratio;
+    
+    canvas.style.width = width+'px';
+	canvas.style.height = height+'px';
 }
 
 function handleComplete(){
